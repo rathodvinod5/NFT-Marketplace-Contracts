@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import "./ERC721CollectionContract.sol";
 
-contract NFTMarkeplace {
+contract NFTFactory {
     struct Collection {
         string name;
         string description;
