@@ -8,51 +8,87 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 contract NFTMarketplace is ReentrancyGuard {
     struct Listing {
-        address seller;
-        address contractAddress;
+        address nftContractAddress;
         uint256 tokenId;
+        address seller;
         uint256 price;
-        bool isERC1155;
     }
 
     mapping(address => mapping(uint256 => Listing)) public listings;
-    address[] public collectionAddresses;
+    address[] public collectionsAddresses;
     Listing[] public allListings;
 
     event NFTListed(
-        address nftAddress,
-        address seller,
+        address nftContractAddress,
         uint256 tokenId,
+        address seller,
         uint256 price
     );
+
     event NFTSold(
-        address nftAddress,
-        address buyer,
+        address nftContractAddress,
         uint256 tokenId,
+        address seller,
         uint256 price
     );
-    event ListingRemoved(
-        address nftAddress,
-        address seller,
-        uint256 tokenId
-    );
+
     event ListingUpdated(
-        address nftAddress,
-        address seller,
+        address nftContractAddress,
         uint256 tokenId,
+        address seller,
         uint256 updatedPrice
     );
 
-    function listNFT(address nftAddress, address seller, uint256 tokenId, uint256 price) external nonReentrant {
+    event ListingRemoved(
+        address nftContractAddress,
+        uint256 tokenId,
+        address seller
+    );
+
+    function listNFT(address nftContractAddress, uint256 tokenId, uint256 price) external nonReentrant {
         require(price > 0, "Price should be greater then 0");
-        require(listings[nftAddress][tokenId].seller == address(0), "Token already listed");
+        require(msg.sender != address(0), "Not the owner");
+        require(listings[nftContractAddress][tokenId].seller == address(0), "Already listed");
+        require(IERC721(nftContractAddress).ownerOf(tokenId) == msg.sender, "Only owner can list nft's");
+        Listing memory newListing = Listing(nftContractAddress, tokenId, msg.sender, price);
 
-        require(IERC721(nftAddress).ownerOf(tokenId) == seller, "Not a owner of this token");
+        listings[nftContractAddress][tokenId] = newListing;
+        allListings.push(newListing);
+        collectionsAddresses.push(nftContractAddress); // why this
+        emit NFTListed(nftContractAddress, tokenId, msg.sender, price);
+    }
 
-        listings[nftAddress][tokenId] = Listing(seller, nftAddress, tokenId, price, false);
-        allListings.push(listings[nftAddress][tokenId]);
-        collectionAddresses.push(nftAddress);
-        emit NFTListed(nftAddress, seller, tokenId, price);
+    function buyNFT(address nftContractAddress, uint256 tokenId) external payable nonReentrant {
+        Listing memory listing = listings[nftContractAddress][tokenId];
+        require(msg.value > listing.price, "Please send valid number of eth to buy");
+        require(listing.seller != address(0), "NFT no listed!");
+
+        payable(listing.seller).transfer(msg.value);
+        delete listings[nftContractAddress][tokenId];
+
+        IERC721(nftContractAddress).safeTransferFrom(listing.seller, msg.sender, tokenId);
+        emit NFTSold(nftContractAddress, tokenId, msg.sender, listing.price);
+    }
+
+    function removeListing(address nftContractAddress, uint256 tokenId) external {
+        require(listings[nftContractAddress][tokenId].seller == msg.sender, "You are not the seller!");
+        delete listings[nftContractAddress][tokenId];
+        emit ListingRemoved(nftContractAddress, tokenId, msg.sender);
+    }
+
+    function updateListing(address nftContractAddress, uint256 tokenId, uint256 newPrice) external nonReentrant {
+        require(listings[nftContractAddress][tokenId].seller == msg.sender, "Not the owner!");
+        require(newPrice > 0, "New price must be greater then 0");
+        listings[nftContractAddress][tokenId].price = newPrice;
+        emit ListingUpdated(nftContractAddress, tokenId, msg.sender, newPrice);
+    }
+
+    function getAllListings() external view returns(Listing[] memory) {
+        return allListings;
+    }
+
+    function getAllCollections() external view returns(address[] memory) {
+        return collectionsAddresses;
     }
 }
 
