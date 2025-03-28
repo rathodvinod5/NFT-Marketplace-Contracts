@@ -11,7 +11,7 @@ contract ERC721CollectionContract is ERC721URIStorage, Ownable {
         transferOwnership(msg.sender);
     }
 
-    function createCollection(string memory tokenURI) public {
+    function mint(string memory tokenURI) public {
         tokenIdCounter++;
         uint256 newTokenId = tokenIdCounter;
         _safeMint(msg.sender, newTokenId);
