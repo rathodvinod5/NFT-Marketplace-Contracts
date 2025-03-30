@@ -17,8 +17,8 @@ contract NFTFactory {
 
     event CollectionCreated(string name, string description, address contractAddress, address creator);
 
-    function createNewCollection(string memory name, string memory symbol) public {
-        ERC721CollectionContract contractAddress = new ERC721CollectionContract(name, symbol);
+    function createNewCollection(string memory name, string memory symbol) public returns(address) {
+        ERC721CollectionContract contractAddress = new ERC721CollectionContract(name, symbol, msg.sender);
         Collection memory newCollection = Collection({
             name: name,
             description: "",
@@ -29,6 +29,7 @@ contract NFTFactory {
         collections.push(newCollection);
         userCollections[msg.sender].push(newCollection);
         emit CollectionCreated(name, "", address(contractAddress), msg.sender);
+        return address(contractAddress);
     }
 
     function getAllCollections() public view returns(Collection[] memory) {
@@ -37,5 +38,10 @@ contract NFTFactory {
 
     function getUserCollections(address userAddress) public view returns(Collection[] memory) {
         return userCollections[userAddress];
+    }
+
+    function getUserCollectionAtIndex(address userAddress, uint256 index) public view returns(Collection memory) {
+        require(index < userCollections[userAddress].length, "Invalid index");
+        return userCollections[userAddress][index];
     }
 }
