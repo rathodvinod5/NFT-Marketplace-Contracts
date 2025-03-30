@@ -6,9 +6,13 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract ERC721CollectionContract is ERC721URIStorage, Ownable {
     uint256 public tokenIdCounter;
+    address public factory;
 
-    constructor(string memory name, string memory symbol) ERC721(name, symbol) Ownable(msg.sender) {
-        transferOwnership(msg.sender);
+    constructor(string memory name, string memory symbol, address owner) 
+        ERC721(name, symbol) 
+        Ownable(owner) 
+    {
+        // transferOwnership(msg.sender);
     }
 
     function mint(string memory tokenURI) public {
