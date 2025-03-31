@@ -14,8 +14,10 @@ contract NFTFactory {
 
     Collection[] public collections;
     mapping(address => Collection[]) public userCollections;
+    mapping(address => uint256[]) public collectionToTokens;
 
     event CollectionCreated(string name, string description, address contractAddress, address creator);
+    event NFTMinted(address collectionAddress, address minter, uint256 tokenId);
 
     function createNewCollection(string memory name, string memory symbol) public returns(address) {
         ERC721CollectionContract contractAddress = new ERC721CollectionContract(name, symbol, msg.sender);
@@ -32,6 +34,13 @@ contract NFTFactory {
         return address(contractAddress);
     }
 
+    function mintNFT(address collectionAdd, string memory tokenURI) public {
+        uint256 tokenId = ERC721CollectionContract(collectionAdd).mint(msg.sender, tokenURI);
+        collectionToTokens[collectionAdd].push(tokenId);
+
+        emit NFTMinted(collectionAdd, msg.sender, tokenId);
+    }
+
     function getAllCollections() public view returns(Collection[] memory) {
         return collections;
     }
@@ -43,5 +52,9 @@ contract NFTFactory {
     function getUserCollectionAtIndex(address userAddress, uint256 index) public view returns(Collection memory) {
         require(index < userCollections[userAddress].length, "Invalid index");
         return userCollections[userAddress][index];
+    }
+
+    function getCollectionTokens(address collectionAdd) public view returns(uint256[] memory) {
+        return collectionToTokens[collectionAdd];
     }
 }

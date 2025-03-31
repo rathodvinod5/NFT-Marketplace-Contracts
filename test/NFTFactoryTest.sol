@@ -36,7 +36,7 @@ contract NFTFactoryTest is Test {
 
 
     // test whether collections are being generated csuccessfully
-    function ignore_test_createCollectionSuccessfully() public {
+    function test_createCollectionSuccessfully() public {
         vm.startPrank(user1);
         address collectionAddress = nftFactory.createNewCollection("Test Token", "TTKN");
         assertTrue(collectionAddress != address(0));
@@ -54,7 +54,7 @@ contract NFTFactoryTest is Test {
     }
 
     // test whether the user is owner of the collection which he has created
-    function ignore_test_checkCollectionOwner() public {
+    function test_checkCollectionOwner() public {
         vm.startPrank(user1);
         address collectionAddress = nftFactory.createNewCollection("Test Token", "TTKN");
         assertTrue(collectionAddress != address(0));
@@ -64,7 +64,7 @@ contract NFTFactoryTest is Test {
     }
 
     // Test if the collection list updates correctly when multiple collections are created by the same user
-    function ignore_test_multipleCollectionsPerUser() public {
+    function test_multipleCollectionsPerUser() public {
         vm.startPrank(user1);
         address collectionAddress1 = nftFactory.createNewCollection("Test Token1", "TKN1");
         assertTrue(collectionAddress1 != address(0));
@@ -77,7 +77,7 @@ contract NFTFactoryTest is Test {
     }
 
     // Test if collections are tracked correctly for different users
-    function ignore_test_collectionsAreTrackedCorrecltyForUsers() public {
+    function test_collectionsAreTrackedCorrecltyForUsers() public {
         vm.startPrank(user1);
         address collectionAddress = nftFactory.createNewCollection("Token1", "TKN1");
         assertTrue(collectionAddress != address(0));
@@ -94,7 +94,7 @@ contract NFTFactoryTest is Test {
     }
 
     // Test if an invalid index access in getUserCollections reverts
-    function ignore_test_getUserCollectionAtInvalidIndex() public {
+    function test_getUserCollectionAtInvalidIndex() public {
         vm.startPrank(user1);
         address collection = nftFactory.createNewCollection("Token", "TKN");
         vm.stopPrank();
