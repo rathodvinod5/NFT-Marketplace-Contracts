@@ -118,11 +118,11 @@ contract NFTFactoryTest is Test {
     // Should revert if querying a collection that does not exist.
     function test_getUserCollectionAtInvalidIndex() public {
         vm.startPrank(user1);
-        address collection = nftFactory.createNewCollection("Token", "TKN");
+        nftFactory.createNewCollection("Token", "TKN");
         vm.stopPrank();
 
         vm.expectRevert();
-        address collectionAddress = nftFactory.getUserCollectionAtIndex(user1, 2).contractAddress;
+        nftFactory.getUserCollectionAtIndex(user1, 2).contractAddress;
         // assertEq(invalidCollection, address(0), "Expected address(0) for invalid index");
         vm.stopPrank();
     }
