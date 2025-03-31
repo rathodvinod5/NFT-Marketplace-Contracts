@@ -19,6 +19,9 @@ contract NFTFactoryTest is Test {
         address creator;
     }
 
+    event CollectionCreated(string name, string description, address contractAddress, address creator);
+
+
     function setUp() public {
         deployer = vm.addr(1);
         user1 = vm.addr(2);
@@ -34,7 +37,6 @@ contract NFTFactoryTest is Test {
     //     vm.stopPrank();
     // }
 
-
     // test whether collections are being generated csuccessfully
     function test_createCollectionSuccessfully() public {
         vm.startPrank(user1);
@@ -45,12 +47,25 @@ contract NFTFactoryTest is Test {
         vm.stopPrank();
     }
 
+    // Should store collection details correctly (name, address, creator)
+    function test_shouldStoreCollectionDetailsCorreclty() public {
+        vm.startPrank(user1);
+        address collectionAdd = nftFactory.createNewCollection("Test Collection", "TTKN");
+        assertTrue(collectionAdd != address(0));
+        NFTFactory.Collection memory collection = nftFactory.getUserCollectionAtIndex(user1, 0);
+        assertEq(collection.creator, user1);
+        assertEq(collection.name, "Test Collection");
+        assertEq(collection.symbol, "TTKN");
+        vm.stopPrank();
+    }
+
     // Check if newly created collection is belongs to the correct user
     function test_collectionOwnership() public {
         vm.startPrank(user1);
         address collectionAddress = nftFactory.createNewCollection("Token", "TKN");
         assertTrue(collectionAddress != address(0));
         assertEq(Ownable(collectionAddress).owner(), user1);
+        vm.stopPrank();
     }
 
     // test whether the user is owner of the collection which he has created
@@ -102,5 +117,24 @@ contract NFTFactoryTest is Test {
         vm.expectRevert();
         address collectionAddress = nftFactory.getUserCollectionAtIndex(user1, 2).contractAddress;
         // assertEq(invalidCollection, address(0), "Expected address(0) for invalid index");
+        vm.stopPrank();
+    }
+
+    function test_shouldTrackMintedNFTsInFactory() public {
+        string memory tokenURI1 = "ipfs://QmTestHash1234567890abcdef";
+        string memory tokenURI2 = "ipfs://QmTestHash9876543210abcdef";
+
+        vm.startPrank(deployer);
+        address collectionAdd = nftFactory.createNewCollection("Test Collection", "TKN");
+        // collection = ERC721CollectionContract(collectionAddress);
+        nftFactory.mintNFT(address(collectionAdd), tokenURI1);
+        nftFactory.mintNFT(address(collectionAdd), tokenURI2);
+
+        uint256[] memory collectionTokens = nftFactory.getCollectionTokens(collectionAdd);
+        vm.stopPrank();
+
+        assertEq(collectionTokens.length, 2, "Token length mismatch");
+        assertEq(collectionTokens[0], 1, "Token length mismatch");
+        assertEq(collectionTokens[1], 2, "Token length mismatch");
     }
 }

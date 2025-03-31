@@ -6,6 +6,7 @@ import "./ERC721CollectionContract.sol";
 contract NFTFactory {
     struct Collection {
         string name;
+        string symbol;
         string description;
         string image;
         address contractAddress;
@@ -23,6 +24,7 @@ contract NFTFactory {
         ERC721CollectionContract contractAddress = new ERC721CollectionContract(name, symbol, msg.sender);
         Collection memory newCollection = Collection({
             name: name,
+            symbol: symbol,
             description: "",
             image: "",
             contractAddress: address(contractAddress),
