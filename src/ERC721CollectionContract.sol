@@ -3,6 +3,8 @@ pragma solidity ^0.8.13;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import { console } from "forge-std/console.sol";
+
 
 contract ERC721CollectionContract is ERC721URIStorage, Ownable {
     uint256 public tokenIdCounter;
@@ -14,11 +16,12 @@ contract ERC721CollectionContract is ERC721URIStorage, Ownable {
         Ownable(owner) 
     {
         // transferOwnership(msg.sender);
+        factory = msg.sender;
     }
 
     function mint(address to, string memory tokenURI) public returns(uint256) {
         require(msg.sender == owner() || msg.sender == factory, "Not authorized");
-        
+        // console.log("owner: ", owner);
         tokenIdCounter++;
         uint256 newTokenId = tokenIdCounter;
         // _safeMint(msg.sender, newTokenId);
