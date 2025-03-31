@@ -18,6 +18,10 @@ contract NFTFactoryTest is Test {
         address contractAddress;
         address creator;
     }
+    string tokenURI1 = "ipfs://QmTestHash1234567890abcdef";
+    string tokenURI2 = "ipfs://QmTestHash9876543210abcdef";
+    string tokenURI3 = "ipfs://QmTestHash9876543210abcded";
+    string tokenURI4 = "ipfs://QmTestHash9876543210abcdee";
 
     event CollectionCreated(string name, string description, address contractAddress, address creator);
 
@@ -89,9 +93,11 @@ contract NFTFactoryTest is Test {
         address paramAddress2 = nftFactory.getUserCollections(user1)[1].contractAddress;
         assertEq(collectionAddress1, paramAddress1);
         assertEq(collectionAddress2, paramAddress2);
+        vm.stopPrank();
     }
 
     // Test if collections are tracked correctly for different users
+    // Should handle multiple users creating collections without conflicts
     function test_collectionsAreTrackedCorrecltyForUsers() public {
         vm.startPrank(user1);
         address collectionAddress = nftFactory.createNewCollection("Token1", "TKN1");
@@ -109,6 +115,7 @@ contract NFTFactoryTest is Test {
     }
 
     // Test if an invalid index access in getUserCollections reverts
+    // Should revert if querying a collection that does not exist.
     function test_getUserCollectionAtInvalidIndex() public {
         vm.startPrank(user1);
         address collection = nftFactory.createNewCollection("Token", "TKN");
@@ -121,9 +128,6 @@ contract NFTFactoryTest is Test {
     }
 
     function test_shouldTrackMintedNFTsInFactory() public {
-        string memory tokenURI1 = "ipfs://QmTestHash1234567890abcdef";
-        string memory tokenURI2 = "ipfs://QmTestHash9876543210abcdef";
-
         vm.startPrank(deployer);
         address collectionAdd = nftFactory.createNewCollection("Test Collection", "TKN");
         // collection = ERC721CollectionContract(collectionAddress);
@@ -136,5 +140,72 @@ contract NFTFactoryTest is Test {
         assertEq(collectionTokens.length, 2, "Token length mismatch");
         assertEq(collectionTokens[0], 1, "Token length mismatch");
         assertEq(collectionTokens[1], 2, "Token length mismatch");
+    }
+
+    function test_shouldPreventUnauthorizedUsersFromMintingThroughFactory() public {
+        vm.prank(user1);
+        address collectionAdd = nftFactory.createNewCollection("Test Collection", "TKN");
+
+        vm.startPrank(user2);
+        vm.expectRevert("Not authorized");
+        nftFactory.mintNFT(address(collectionAdd), tokenURI1);
+        vm.stopPrank();
+    }
+
+    function test_shouldPreventMintingWithInvalidTokenURI() public {
+        vm.prank(user1);
+        address collectionAdd = nftFactory.createNewCollection("Test", "TKN");
+
+        vm.expectRevert("Invalid token URI");
+        nftFactory.mintNFT(collectionAdd, "");
+
+        vm.expectRevert("Invalid token URI");
+        nftFactory.mintNFT(collectionAdd, "invalid_uri");
+    }
+
+    // Should Allow Fetching Tokens from Multiple Collections Correctly
+    // Should Ensure Correct Ownership Mapping When NFTs Are Minted
+    function test_shouldAllowFetchingTokensFromMultipleCollectionsCorrectly() public {
+        vm.startPrank(user1);
+        address owner1Collection1 = nftFactory.createNewCollection("User1 Token", "TKN1");
+        address owner1Collection2 = nftFactory.createNewCollection("User1 Token", "TKN2");
+        vm.stopPrank();
+        
+        vm.prank(user2);
+        address owner2Collection1 = nftFactory.createNewCollection("User2 Token", "TKN3");
+
+        vm.startPrank(user1);
+        nftFactory.mintNFT(address(owner1Collection1), tokenURI1);
+        nftFactory.mintNFT(address(owner1Collection1), tokenURI2);
+        vm.stopPrank();
+
+        vm.prank(user2);
+        nftFactory.mintNFT(address(owner2Collection1), tokenURI3);
+
+        vm.prank(user1);
+        nftFactory.mintNFT(address(owner1Collection2), tokenURI4);
+
+        uint256[] memory user1Collection1Tokens = nftFactory.getCollectionTokens(owner1Collection1);
+        uint256[] memory user1Collection2Tokens = nftFactory.getCollectionTokens(owner1Collection2);
+        uint256[] memory user2Collection1Tokens = nftFactory.getCollectionTokens(owner2Collection1);
+
+        // Should Allow Fetching Tokens from Multiple Collections Correctly
+        assertEq(user1Collection1Tokens.length, 2, "Token length mismtach");
+        assertEq(user1Collection1Tokens[0], 1, "Token id mismtach");
+        assertEq(user1Collection1Tokens[1], 2, "Token id mismtach");
+
+        assertEq(user1Collection2Tokens.length, 1, "Token length mismtach");
+        assertEq(user1Collection2Tokens[0], 1, "Token id mismtach");
+
+        assertEq(user2Collection1Tokens.length, 1, "Token length mismtach");
+        assertEq(user2Collection1Tokens[0], 1, "Token id mismtach");
+
+
+        // Should Ensure Correct Ownership Mapping When NFTs Are Minted
+        assertEq(ERC721CollectionContract(owner1Collection1).ownerOf(user1Collection1Tokens[0]), user1);
+        assertEq(ERC721CollectionContract(owner1Collection1).ownerOf(user1Collection1Tokens[1]), user1);
+        assertEq(ERC721CollectionContract(owner1Collection2).ownerOf(user1Collection2Tokens[0]), user1);
+
+        assertEq(ERC721CollectionContract(owner2Collection1).ownerOf(user2Collection1Tokens[0]), user2);
     }
 }
