@@ -21,6 +21,7 @@ contract ERC721CollectionContract is ERC721URIStorage, Ownable {
 
     function mint(address to, string memory tokenURI) public returns(uint256) {
         require(msg.sender == owner() || msg.sender == factory, "Not authorized");
+        // console.log("owner: ", owner);
         tokenIdCounter++;
         uint256 newTokenId = tokenIdCounter;
         // _safeMint(msg.sender, newTokenId);
