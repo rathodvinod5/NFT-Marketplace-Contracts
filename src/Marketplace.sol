@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 contract NFTMarketplace is ReentrancyGuard {
     struct Listing {
-        address nftContractAddress;
+        address collectionAddress;
         uint256 tokenId;
         address seller;
         uint256 price;
@@ -50,9 +50,9 @@ contract NFTMarketplace is ReentrancyGuard {
     );
 
     function listNFT(address collectionAddress, uint256 tokenId, uint256 price) external nonReentrant {
-        require(price > 0, "Price should be greater then 0");
+        require(price > 0, "Selling price should be greater then 0");
         require(msg.sender != address(0), "Not the owner");
-        require(collectionToTokenListings[collectionAddress][tokenId].seller == address(0), "Already listed");
+        require(collectionToTokenListings[collectionAddress][tokenId].seller == address(0), "NFT already listed");
         require(IERC721(collectionAddress).ownerOf(tokenId) == msg.sender, "Only owner can list nft's");
 
         Listing memory newListing = Listing(collectionAddress, tokenId, msg.sender, price, allListings.length);

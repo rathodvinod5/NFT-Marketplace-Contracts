@@ -7,7 +7,7 @@
 // ✅ Should revert if the caller is not the owner of the NFT.
 // ✅ Should add the NFT to the listings mapping upon successful listing.
 // ✅ Should add the NFT listing to allListings upon successful listing.
-// ✅ Should add the NFT contract address to collectionsAddresses.
+// ✅ Should add the NFT contract address to collectionsAddresses. - removed
 
 // 2. Buying NFTs
 // ✅ Should allow a buyer to purchase a listed NFT.
