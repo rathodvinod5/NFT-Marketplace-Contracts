@@ -2,8 +2,8 @@
 pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
-import "../src/Marketplace.sol";
-import "../src/ERC721CollectionContract.sol";
+import "../../src/Marketplace.sol";
+import "../../src/ERC721CollectionContract.sol";
 
 contract NFTMarketPlaceTest is Test {
     NFTMarketplace marketplace;
