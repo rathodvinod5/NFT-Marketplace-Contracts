@@ -95,7 +95,7 @@ contract NFTMarketplace is ReentrancyGuard {
     function removeListing(address collectionAddress, uint256 tokenId) external {
         Listing memory listing = collectionToTokenListings[collectionAddress][tokenId];
 
-        require(listing.seller == msg.sender, "You are not the seller!");
+        require(listing.seller == msg.sender, "Only owner can remove the listing");
         delete collectionToTokenListings[collectionAddress][tokenId];
         // allListings[listing.indexForAllListings].isListed = false;
         uint256 index = listing.indexForAllListings;
