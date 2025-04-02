@@ -13,13 +13,8 @@ contract NFTFactory {
         address creator;
     }
 
-    // to show collections carousel
     Collection[] public collections;
-    // users collection list for dropdown, 
-    // should be shown on user profile page to allow listing nft's on marketplace
     mapping(address => Collection[]) public userCollections;
-    // token belonging to collection
-    // should be shown on user profile page to allow listing nft's on marketplace
     mapping(address => uint256[]) public collectionToTokens;
 
     event CollectionCreated(string name, string description, address contractAddress, address creator);

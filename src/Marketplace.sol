@@ -32,7 +32,7 @@ contract NFTMarketplace is ReentrancyGuard {
     event NFTSold(
         address collectionAddress,
         uint256 tokenId,
-        address seller,
+        address buyer,
         uint256 price
     );
 
@@ -66,8 +66,8 @@ contract NFTMarketplace is ReentrancyGuard {
     function buyNFT(address collectionAddress, uint256 tokenId) external payable nonReentrant {
         Listing memory listing = collectionToTokenListings[collectionAddress][tokenId];
 
-        require(msg.value >= listing.price, "Please send valid number of eth to buy");
-        require(listing.seller != address(0), "NFT no listed!");
+        require(listing.seller != address(0), "NFT not listed!");
+        require(msg.value >= listing.price, "Please send valid number of eth to buy NFT");
 
         IERC721(collectionAddress).safeTransferFrom(listing.seller, msg.sender, tokenId);
         // return excess amount to buyer

@@ -164,7 +164,6 @@ contract NFTFactoryTest is Test {
     }
 
     // Should Allow Fetching Tokens from Multiple Collections Correctly
-    // Should Ensure Correct Ownership Mapping When NFTs Are Minted
     function test_shouldAllowFetchingTokensFromMultipleCollectionsCorrectly() public {
         vm.startPrank(user1);
         address owner1Collection1 = nftFactory.createNewCollection("User1 Token", "TKN1");
@@ -199,6 +198,32 @@ contract NFTFactoryTest is Test {
 
         assertEq(user2Collection1Tokens.length, 1, "Token length mismtach");
         assertEq(user2Collection1Tokens[0], 1, "Token id mismtach");
+    }
+
+    // Should Ensure Correct Ownership Mapping When NFTs Are Minted
+    function test_ShouldEnsureCorrectOwnershipMappingWhenNFTsAreMinted() public {
+        vm.startPrank(user1);
+        address owner1Collection1 = nftFactory.createNewCollection("User1 Token", "TKN1");
+        address owner1Collection2 = nftFactory.createNewCollection("User1 Token", "TKN2");
+        vm.stopPrank();
+        
+        vm.prank(user2);
+        address owner2Collection1 = nftFactory.createNewCollection("User2 Token", "TKN3");
+
+        vm.startPrank(user1);
+        nftFactory.mintNFT(address(owner1Collection1), tokenURI1);
+        nftFactory.mintNFT(address(owner1Collection1), tokenURI2);
+        vm.stopPrank();
+
+        vm.prank(user2);
+        nftFactory.mintNFT(address(owner2Collection1), tokenURI3);
+
+        vm.prank(user1);
+        nftFactory.mintNFT(address(owner1Collection2), tokenURI4);
+
+        uint256[] memory user1Collection1Tokens = nftFactory.getCollectionTokens(owner1Collection1);
+        uint256[] memory user1Collection2Tokens = nftFactory.getCollectionTokens(owner1Collection2);
+        uint256[] memory user2Collection1Tokens = nftFactory.getCollectionTokens(owner2Collection1);
 
 
         // Should Ensure Correct Ownership Mapping When NFTs Are Minted
@@ -206,6 +231,44 @@ contract NFTFactoryTest is Test {
         assertEq(ERC721CollectionContract(owner1Collection1).ownerOf(user1Collection1Tokens[1]), user1);
         assertEq(ERC721CollectionContract(owner1Collection2).ownerOf(user1Collection2Tokens[0]), user1);
 
+        assertEq(ERC721CollectionContract(owner2Collection1).ownerOf(user2Collection1Tokens[0]), user2);
+    }
+
+     // Should Ensure Correct Ownership Mapping When NFTs Are Minted - Alternative approach
+    function test_ShouldEnsureCorrectOwnershipMappingWhenNFTsAreMintedAlt() public {
+        vm.startPrank(user1);
+        address owner1Collection1 = nftFactory.createNewCollection("User1 Token", "TKN1");
+        address owner1Collection2 = nftFactory.createNewCollection("User1 Token", "TKN2");
+        vm.stopPrank();
+        
+        vm.prank(user2);
+        address owner2Collection1 = nftFactory.createNewCollection("User2 Token", "TKN3");
+
+        vm.startPrank(user1);
+        nftFactory.mintNFT(address(owner1Collection1), tokenURI1);
+        nftFactory.mintNFT(address(owner1Collection1), tokenURI2);
+        vm.stopPrank();
+
+        vm.prank(user2);
+        nftFactory.mintNFT(address(owner2Collection1), tokenURI3);
+
+        vm.prank(user1);
+        nftFactory.mintNFT(address(owner1Collection2), tokenURI4);
+
+        uint256[] memory user1Collection1Tokens = ERC721CollectionContract(owner1Collection1).getMintedTokensForTheCollection();
+        uint256[] memory user1Collection2Tokens = ERC721CollectionContract(owner1Collection2).getMintedTokensForTheCollection();
+        uint256[] memory user2Collection1Tokens = ERC721CollectionContract(owner2Collection1).getMintedTokensForTheCollection();
+
+
+        // Should Ensure Correct Ownership Mapping When NFTs Are Minted
+        assertEq(user1Collection1Tokens.length, 2, "Token length mismtach");
+        assertEq(ERC721CollectionContract(owner1Collection1).ownerOf(user1Collection1Tokens[0]), user1);
+        assertEq(ERC721CollectionContract(owner1Collection1).ownerOf(user1Collection1Tokens[1]), user1);
+
+        assertEq(user1Collection2Tokens.length, 1, "Token length mismtach");
+        assertEq(ERC721CollectionContract(owner1Collection2).ownerOf(user1Collection2Tokens[0]), user1);
+
+        assertEq(user2Collection1Tokens.length, 1, "Token length mismtach");
         assertEq(ERC721CollectionContract(owner2Collection1).ownerOf(user2Collection1Tokens[0]), user2);
     }
 }
