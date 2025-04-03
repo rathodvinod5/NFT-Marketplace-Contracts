@@ -71,4 +71,16 @@ contract RemoveNFTFromListing is Test {
         assertEq(newListings[0].seller , seller, "Owner mismatch");
         vm.stopPrank();
     }
+
+    // Should emit a ListingRemoved event upon successful removal
+    function test_shouldEmitAnEventUponRemoval() public {
+        vm.startPrank(seller);
+        marketplace.listNFT(address(collectionAddr), tokenId, 0.5 ether);
+
+        vm.expectEmit(true, true, true, true);
+        emit NFTMarketplace.ListingRemoved(address(collectionAddr), tokenId, seller);
+
+        marketplace.removeListing(address(collectionAddr), tokenId);
+        vm.stopPrank();
+    }
 } 
