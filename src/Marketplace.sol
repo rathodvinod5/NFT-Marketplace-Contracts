@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT 
 pragma solidity ^0.8.20;
 
+import "forge-std/console.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
@@ -73,6 +74,7 @@ contract NFTMarketplace is ReentrancyGuard {
         // return excess amount to buyer
         uint256 excess = msg.value - listing.price;
         if (excess > 0) {
+            console.log('excess: %i', excess);
             payable(msg.sender).transfer(excess);
         }
         // pay to seller
