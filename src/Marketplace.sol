@@ -16,7 +16,6 @@ contract NFTMarketplace is ReentrancyGuard {
         uint256 indexForAllListings;
     }
 
-    // 
     mapping(address => mapping(uint256 => Listing)) public collectionToTokenListings;
     // Req to show list of all nft's on AllNFT's page
     Listing[] public allListings;
@@ -50,8 +49,29 @@ contract NFTMarketplace is ReentrancyGuard {
         address seller
     );
 
-    function listNFT(address collectionAddress, uint256 tokenId, uint256 price) external nonReentrant {
-        require(price > 0, "Selling price should be greater then 0");
+    modifier messageSenderIsNotContract(uint256 price, string memory message) {
+        require(price > 0, message);
+        _;
+    }
+
+    modifier onlyOwner(address owner) {
+        require(msg.sender != address(0), "Not the owner");
+        _;
+    }
+
+    modifier isAlreadyList(address seller) {
+        require(seller == address(0), "NFT already listed");
+        _;
+    }
+
+     modifier isOwner(address seller, address msgSender) {
+        require(seller == msgSender, "Not the owner!");
+        _;
+    }
+
+    function listNFT(address collectionAddress, uint256 tokenId, uint256 price) 
+      external nonReentrant messageSenderIsNotContract(price, "Selling price should be greater then 0") {
+        // require(price > 0, "Selling price should be greater then 0");
         require(msg.sender != address(0), "Not the owner");
         require(collectionToTokenListings[collectionAddress][tokenId].seller == address(0), "NFT already listed");
         require(IERC721(collectionAddress).ownerOf(tokenId) == msg.sender, "Only owner can list nft's");
@@ -74,7 +94,7 @@ contract NFTMarketplace is ReentrancyGuard {
         // return excess amount to buyer
         uint256 excess = msg.value - listing.price;
         if (excess > 0) {
-            console.log('excess: %i', excess);
+            // console.log('excess: %i', excess);
             payable(msg.sender).transfer(excess);
         }
         // pay to seller
@@ -112,9 +132,10 @@ contract NFTMarketplace is ReentrancyGuard {
         emit ListingRemoved(collectionAddress, tokenId, msg.sender);
     }
 
-    function updateListingPrice(address collectionAddress, uint256 tokenId, uint256 newPrice) external nonReentrant {
+    function updateListingPrice(address collectionAddress, uint256 tokenId, uint256 newPrice) 
+      external nonReentrant messageSenderIsNotContract(newPrice, "New price must be greater then 0") {
         require(collectionToTokenListings[collectionAddress][tokenId].seller == msg.sender, "Not the owner!");
-        require(newPrice > 0, "New price must be greater then 0");
+        // require(newPrice > 0, "New price must be greater then 0");
 
         collectionToTokenListings[collectionAddress][tokenId].price = newPrice;
         
