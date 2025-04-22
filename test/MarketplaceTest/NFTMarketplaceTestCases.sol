@@ -42,5 +42,5 @@
 // ✅ Should revert if trying to buy an NFT while it's being updated.
 // ✅ Should revert if a seller tries to list an NFT they no longer own.
 // ✅ Should ensure collectionsAddresses does not contain duplicate contract addresses.
-// ✅ Should revert if seller is a smart contract that requires more than 2300 gas to accept ETH.
+// ✅ Should revert if seller is a smart contract that requires more than 2300 gas to accept ETH. - dropped due to failing
 // ✅ Should successfully transfer ETH if the seller is an externally owned account (EOA).
