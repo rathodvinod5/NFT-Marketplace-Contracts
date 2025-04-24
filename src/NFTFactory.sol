@@ -20,6 +20,16 @@ contract NFTFactory {
     event CollectionCreated(string name, string description, address contractAddress, address creator);
     event NFTMinted(address collectionAddress, address minter, uint256 tokenId);
 
+    modifier isValidToken(string memory tokenURI) {
+        require(bytes(tokenURI).length > 0, "Invalid token URI");
+        _;
+    }
+
+    modifier isCollectionIndexValid(uint256 index, address userAddress) {
+        require(index < userCollections[userAddress].length, "Invalid index");
+        _;
+    }
+
     function createNewCollection(string memory name, string memory symbol) public returns(address) {
         ERC721CollectionContract contractAddress = new ERC721CollectionContract(name, symbol, msg.sender);
         Collection memory newCollection = Collection({
@@ -36,8 +46,8 @@ contract NFTFactory {
         return address(contractAddress);
     }
 
-    function mintNFT(address collectionAdd, string memory tokenURI) public {
-        require(bytes(tokenURI).length > 0, "Invalid token URI");
+    function mintNFT(address collectionAdd, string memory tokenURI) public isValidToken(tokenURI) {
+        // require(bytes(tokenURI).length > 0, "Invalid token URI");
         require(isIPFS(tokenURI) || isHTTPS(tokenURI), "Invalid token URI");
 
         address owner = Ownable(collectionAdd).owner();
@@ -57,8 +67,9 @@ contract NFTFactory {
         return userCollections[userAddress];
     }
 
-    function getUserCollectionAtIndex(address userAddress, uint256 index) public view returns(Collection memory) {
-        require(index < userCollections[userAddress].length, "Invalid index");
+    function getUserCollectionAtIndex(address userAddress, uint256 index) public view 
+        isCollectionIndexValid(index, userAddress) returns(Collection memory) {
+        // require(index < userCollections[userAddress].length, "Invalid index");
         return userCollections[userAddress][index];
     }
 
