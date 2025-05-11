@@ -6,7 +6,7 @@ import "../src/NFTFactory.sol";
 
 contract DeployFactory is Script {
     function run() external {
-        vm.broadcast();
+        vm.startBroadcast();
 
         NFTFactory factory = new NFTFactory();
 
