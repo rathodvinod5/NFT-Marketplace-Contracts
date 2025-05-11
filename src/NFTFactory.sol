@@ -30,7 +30,7 @@ contract NFTFactory {
         _;
     }
 
-    function createNewCollection(string memory name, string memory symbol) public returns(address) {
+    function createNewCollection(string memory name, string memory symbol) external returns(address) {
         require(bytes(name).length > 0, "Name required");
         ERC721CollectionContract contractAddress = new ERC721CollectionContract(name, symbol, msg.sender);
         Collection memory newCollection = Collection({
@@ -47,7 +47,7 @@ contract NFTFactory {
         return address(contractAddress);
     }
 
-    function mintNFT(address collectionAdd, string memory tokenURI) public isValidToken(tokenURI) {
+    function mintNFT(address collectionAdd, string memory tokenURI) external isValidToken(tokenURI) {
         // require(bytes(tokenURI).length > 0, "Invalid token URI");
         require(isIPFS(tokenURI) || isHTTPS(tokenURI), "Invalid token URI");
 
@@ -60,11 +60,12 @@ contract NFTFactory {
         emit NFTMinted(collectionAdd, msg.sender, tokenId);
     }
 
-    function getAllCollections() public view returns(Collection[] memory) {
+    // happening due to external keyword
+    function getAllCollections() external view returns(Collection[] memory) {
         return collections;
     }
 
-    function getUserCollections(address userAddress) public view returns(Collection[] memory) {
+    function getUserCollections(address userAddress) external view returns(Collection[] memory) {
         return userCollections[userAddress];
     }
 
@@ -74,7 +75,7 @@ contract NFTFactory {
         return userCollections[userAddress][index];
     }
 
-    function getCollectionTokens(address collectionAdd) public view returns(uint256[] memory) {
+    function getCollectionTokens(address collectionAdd) external view returns(uint256[] memory) {
         return collectionToTokens[collectionAdd];
     }
 
