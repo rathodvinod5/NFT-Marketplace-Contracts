@@ -31,6 +31,7 @@ contract NFTFactory {
     }
 
     function createNewCollection(string memory name, string memory symbol) public returns(address) {
+        require(bytes(name).length > 0, "Name required");
         ERC721CollectionContract contractAddress = new ERC721CollectionContract(name, symbol, msg.sender);
         Collection memory newCollection = Collection({
             name: name,

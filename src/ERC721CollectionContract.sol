@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import { console } from "forge-std/console.sol";
+import "forge-std/console.sol";
 
 
 contract ERC721CollectionContract is ERC721URIStorage, Ownable {
@@ -15,6 +15,9 @@ contract ERC721CollectionContract is ERC721URIStorage, Ownable {
         ERC721(name, symbol) 
         Ownable(owner) 
     {
+        require(owner != address(0), "Invalid owner address");
+        console.log("msg.sender:", msg.sender);
+        console.log("owner passed:", owner);
         // transferOwnership(msg.sender);
         factory = msg.sender;
     }
