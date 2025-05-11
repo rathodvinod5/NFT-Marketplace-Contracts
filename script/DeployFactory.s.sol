@@ -3,6 +3,7 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Script.sol";
 import "../src/NFTFactory.sol";
+import "forge-std/console.sol";
 
 contract DeployFactory is Script {
     function run() external {
@@ -10,7 +11,7 @@ contract DeployFactory is Script {
 
         NFTFactory factory = new NFTFactory();
 
-        console2.log("Factory contract Address: ", address(factory));
+        console.log("Factory contract deployed at: ", address(factory));
 
         vm.stopBroadcast();
     }
