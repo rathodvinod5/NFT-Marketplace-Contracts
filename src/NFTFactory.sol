@@ -7,8 +7,7 @@ contract NFTFactory {
     struct Collection {
         string name;
         string symbol;
-        string description;
-        string image;
+        string metadataURI; // Optional metadata URI
         address contractAddress;
         address creator;
     }
@@ -17,7 +16,7 @@ contract NFTFactory {
     mapping(address => Collection[]) public userCollections;
     mapping(address => uint256[]) public collectionToTokens;
 
-    event CollectionCreated(string name, string description, address contractAddress, address creator);
+    event CollectionCreated(string name, address contractAddress, address creator);
     event NFTMinted(address collectionAddress, address minter, uint256 tokenId);
 
     modifier isValidToken(string memory tokenURI) {
@@ -30,24 +29,23 @@ contract NFTFactory {
         _;
     }
 
-    function createNewCollection(string memory name, string memory symbol) external returns(address) {
+    function createNewCollection(string memory name, string memory symbol, string memory metadataURI) external returns(address) {
         require(bytes(name).length > 0, "Name required");
         ERC721CollectionContract contractAddress = new ERC721CollectionContract(name, symbol, msg.sender);
         Collection memory newCollection = Collection({
             name: name,
             symbol: symbol,
-            description: "",
-            image: "",
+            metadataURI: metadataURI, // Optional, can be set later
             contractAddress: address(contractAddress),
             creator: msg.sender
         });
         collections.push(newCollection);
         userCollections[msg.sender].push(newCollection);
-        emit CollectionCreated(name, "", address(contractAddress), msg.sender);
+        emit CollectionCreated(name, address(contractAddress), msg.sender);
         return address(contractAddress);
     }
 
-    function mintNFT(address collectionAdd, string memory tokenURI) external isValidToken(tokenURI) {
+    function mintNFT(address collectionAdd, string memory tokenURI) external isValidToken(tokenURI) returns(uint256) {
         // require(bytes(tokenURI).length > 0, "Invalid token URI");
         require(isIPFS(tokenURI) || isHTTPS(tokenURI), "Invalid token URI");
 
@@ -58,6 +56,7 @@ contract NFTFactory {
         collectionToTokens[collectionAdd].push(tokenId);
 
         emit NFTMinted(collectionAdd, msg.sender, tokenId);
+        return tokenId;
     }
 
     // happening due to external keyword
