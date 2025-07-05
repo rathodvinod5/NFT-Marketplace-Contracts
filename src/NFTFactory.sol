@@ -7,8 +7,7 @@ contract NFTFactory {
     struct Collection {
         string name;
         string symbol;
-        string description;
-        string image;
+        string metadataURI; // Optional metadata URI
         address contractAddress;
         address creator;
     }
@@ -30,14 +29,13 @@ contract NFTFactory {
         _;
     }
 
-    function createNewCollection(string memory name, string memory symbol) external returns(address) {
+    function createNewCollection(string memory name, string memory symbol, string memory metadataURI) external returns(address) {
         require(bytes(name).length > 0, "Name required");
         ERC721CollectionContract contractAddress = new ERC721CollectionContract(name, symbol, msg.sender);
         Collection memory newCollection = Collection({
             name: name,
             symbol: symbol,
-            description: "",
-            image: "",
+            metadataURI: metadataURI, // Optional, can be set later
             contractAddress: address(contractAddress),
             creator: msg.sender
         });
