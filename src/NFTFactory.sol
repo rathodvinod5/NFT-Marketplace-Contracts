@@ -16,7 +16,7 @@ contract NFTFactory {
     mapping(address => Collection[]) public userCollections;
     mapping(address => uint256[]) public collectionToTokens;
 
-    event CollectionCreated(string name, string description, address contractAddress, address creator);
+    event CollectionCreated(string name, address contractAddress, address creator);
     event NFTMinted(address collectionAddress, address minter, uint256 tokenId);
 
     modifier isValidToken(string memory tokenURI) {
@@ -41,11 +41,11 @@ contract NFTFactory {
         });
         collections.push(newCollection);
         userCollections[msg.sender].push(newCollection);
-        emit CollectionCreated(name, "", address(contractAddress), msg.sender);
+        emit CollectionCreated(name, address(contractAddress), msg.sender);
         return address(contractAddress);
     }
 
-    function mintNFT(address collectionAdd, string memory tokenURI) external isValidToken(tokenURI) {
+    function mintNFT(address collectionAdd, string memory tokenURI) external isValidToken(tokenURI) returns(uint256) {
         // require(bytes(tokenURI).length > 0, "Invalid token URI");
         require(isIPFS(tokenURI) || isHTTPS(tokenURI), "Invalid token URI");
 
@@ -56,6 +56,7 @@ contract NFTFactory {
         collectionToTokens[collectionAdd].push(tokenId);
 
         emit NFTMinted(collectionAdd, msg.sender, tokenId);
+        return tokenId;
     }
 
     // happening due to external keyword

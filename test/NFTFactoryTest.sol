@@ -11,13 +11,14 @@ contract NFTFactoryTest is Test {
     address user1;
     address user2;
 
-    struct Collection {
-        string name;
-        string description;
-        string image;
-        address contractAddress;
-        address creator;
-    }
+    // struct Collection {
+    //     string name;
+    //     string description;
+    //     string image;
+    //     address contractAddress;
+    //     address creator;
+    // }
+
     string tokenURI1 = "ipfs://QmTestHash1234567890abcdef";
     string tokenURI2 = "ipfs://QmTestHash9876543210abcdef";
     string tokenURI3 = "ipfs://QmTestHash9876543210abcded";
@@ -44,7 +45,7 @@ contract NFTFactoryTest is Test {
     // test whether collections are being generated csuccessfully
     function test_createCollectionSuccessfully() public {
         vm.startPrank(user1);
-        address collectionAddress = nftFactory.createNewCollection("Test Token", "TTKN");
+        address collectionAddress = nftFactory.createNewCollection("Test Token", "TTKN", tokenURI1);
         assertTrue(collectionAddress != address(0));
         address paramAddress = nftFactory.getUserCollections(user1)[0].contractAddress;
         assertEq(paramAddress, collectionAddress);
@@ -54,19 +55,20 @@ contract NFTFactoryTest is Test {
     // Should store collection details correctly (name, address, creator)
     function test_shouldStoreCollectionDetailsCorreclty() public {
         vm.startPrank(user1);
-        address collectionAdd = nftFactory.createNewCollection("Test Collection", "TTKN");
-        assertTrue(collectionAdd != address(0));
+        address collectionAddress = nftFactory.createNewCollection("Test Collection", "TTKN", tokenURI1);
+        assertTrue(collectionAddress != address(0));
         NFTFactory.Collection memory collection = nftFactory.getUserCollectionAtIndex(user1, 0);
         assertEq(collection.creator, user1);
         assertEq(collection.name, "Test Collection");
         assertEq(collection.symbol, "TTKN");
+        assertEq(collection.metadataURI, tokenURI1);
         vm.stopPrank();
     }
 
     // Check if newly created collection is belongs to the correct user
     function test_collectionOwnership() public {
         vm.startPrank(user1);
-        address collectionAddress = nftFactory.createNewCollection("Token", "TKN");
+        address collectionAddress = nftFactory.createNewCollection("Token", "TKN", tokenURI1);
         assertTrue(collectionAddress != address(0));
         assertEq(Ownable(collectionAddress).owner(), user1);
         vm.stopPrank();
@@ -75,7 +77,7 @@ contract NFTFactoryTest is Test {
     // test whether the user is owner of the collection which he has created
     function test_checkCollectionOwner() public {
         vm.startPrank(user1);
-        address collectionAddress = nftFactory.createNewCollection("Test Token", "TTKN");
+        address collectionAddress = nftFactory.createNewCollection("Test Token", "TTKN", tokenURI1);
         assertTrue(collectionAddress != address(0));
         address creator = nftFactory.getUserCollections(user1)[0].creator;
         assertEq(user1, creator);
@@ -85,10 +87,10 @@ contract NFTFactoryTest is Test {
     // Test if the collection list updates correctly when multiple collections are created by the same user
     function test_multipleCollectionsPerUser() public {
         vm.startPrank(user1);
-        address collectionAddress1 = nftFactory.createNewCollection("Test Token1", "TKN1");
+        address collectionAddress1 = nftFactory.createNewCollection("Test Token1", "TKN1", tokenURI1);
         assertTrue(collectionAddress1 != address(0));
         address paramAddress1 = nftFactory.getUserCollections(user1)[0].contractAddress;
-        address collectionAddress2 = nftFactory.createNewCollection("Test Token2", "TKN2");
+        address collectionAddress2 = nftFactory.createNewCollection("Test Token2", "TKN2", tokenURI2);
         assertTrue(collectionAddress2 != address(0));
         address paramAddress2 = nftFactory.getUserCollections(user1)[1].contractAddress;
         assertEq(collectionAddress1, paramAddress1);
@@ -100,14 +102,14 @@ contract NFTFactoryTest is Test {
     // Should handle multiple users creating collections without conflicts
     function test_collectionsAreTrackedCorrecltyForUsers() public {
         vm.startPrank(user1);
-        address collectionAddress = nftFactory.createNewCollection("Token1", "TKN1");
+        address collectionAddress = nftFactory.createNewCollection("Token1", "TKN1", tokenURI1);
         assertTrue(collectionAddress != address(0));
         address user1CollectionAddress = nftFactory.getUserCollections(user1)[0].contractAddress;
         assertEq(collectionAddress, user1CollectionAddress);
         vm.stopPrank();
 
         vm.startPrank(user2);
-        address collectionAddress1 = nftFactory.createNewCollection("Token1", "TKN1");
+        address collectionAddress1 = nftFactory.createNewCollection("Token1", "TKN1", tokenURI2);
         assertTrue(collectionAddress1 != address(0));
         address user1CollectionAddress1 = nftFactory.getUserCollections(user2)[0].contractAddress;
         assertEq(collectionAddress1, user1CollectionAddress1);
@@ -118,7 +120,7 @@ contract NFTFactoryTest is Test {
     // Should revert if querying a collection that does not exist.
     function test_getUserCollectionAtInvalidIndex() public {
         vm.startPrank(user1);
-        nftFactory.createNewCollection("Token", "TKN");
+        nftFactory.createNewCollection("Token", "TKN", tokenURI1);
         vm.stopPrank();
 
         vm.expectRevert();
@@ -129,7 +131,7 @@ contract NFTFactoryTest is Test {
 
     function test_shouldTrackMintedNFTsInFactory() public {
         vm.startPrank(deployer);
-        address collectionAdd = nftFactory.createNewCollection("Test Collection", "TKN");
+        address collectionAdd = nftFactory.createNewCollection("Test Collection", "TKN", tokenURI1);
         // collection = ERC721CollectionContract(collectionAddress);
         nftFactory.mintNFT(address(collectionAdd), tokenURI1);
         nftFactory.mintNFT(address(collectionAdd), tokenURI2);
@@ -144,7 +146,7 @@ contract NFTFactoryTest is Test {
 
     function test_shouldPreventUnauthorizedUsersFromMintingThroughFactory() public {
         vm.prank(user1);
-        address collectionAdd = nftFactory.createNewCollection("Test Collection", "TKN");
+        address collectionAdd = nftFactory.createNewCollection("Test Collection", "TKN", tokenURI1);
 
         vm.startPrank(user2);
         vm.expectRevert("Not authorized");
@@ -154,7 +156,7 @@ contract NFTFactoryTest is Test {
 
     function test_shouldPreventMintingWithInvalidTokenURI() public {
         vm.prank(user1);
-        address collectionAdd = nftFactory.createNewCollection("Test", "TKN");
+        address collectionAdd = nftFactory.createNewCollection("Test", "TKN", tokenURI1);
 
         vm.expectRevert("Invalid token URI");
         nftFactory.mintNFT(collectionAdd, "");
@@ -166,12 +168,12 @@ contract NFTFactoryTest is Test {
     // Should Allow Fetching Tokens from Multiple Collections Correctly
     function test_shouldAllowFetchingTokensFromMultipleCollectionsCorrectly() public {
         vm.startPrank(user1);
-        address owner1Collection1 = nftFactory.createNewCollection("User1 Token", "TKN1");
-        address owner1Collection2 = nftFactory.createNewCollection("User1 Token", "TKN2");
+        address owner1Collection1 = nftFactory.createNewCollection("User1 Token", "TKN1", tokenURI1);
+        address owner1Collection2 = nftFactory.createNewCollection("User1 Token", "TKN2", tokenURI2);
         vm.stopPrank();
         
         vm.prank(user2);
-        address owner2Collection1 = nftFactory.createNewCollection("User2 Token", "TKN3");
+        address owner2Collection1 = nftFactory.createNewCollection("User2 Token", "TKN3", tokenURI3);
 
         vm.startPrank(user1);
         nftFactory.mintNFT(address(owner1Collection1), tokenURI1);
@@ -203,12 +205,12 @@ contract NFTFactoryTest is Test {
     // Should Ensure Correct Ownership Mapping When NFTs Are Minted
     function test_ShouldEnsureCorrectOwnershipMappingWhenNFTsAreMinted() public {
         vm.startPrank(user1);
-        address owner1Collection1 = nftFactory.createNewCollection("User1 Token", "TKN1");
-        address owner1Collection2 = nftFactory.createNewCollection("User1 Token", "TKN2");
+        address owner1Collection1 = nftFactory.createNewCollection("User1 Token", "TKN1", tokenURI1);
+        address owner1Collection2 = nftFactory.createNewCollection("User1 Token", "TKN2", tokenURI2);
         vm.stopPrank();
         
         vm.prank(user2);
-        address owner2Collection1 = nftFactory.createNewCollection("User2 Token", "TKN3");
+        address owner2Collection1 = nftFactory.createNewCollection("User2 Token", "TKN3", tokenURI3);
 
         vm.startPrank(user1);
         nftFactory.mintNFT(address(owner1Collection1), tokenURI1);
@@ -237,12 +239,12 @@ contract NFTFactoryTest is Test {
      // Should Ensure Correct Ownership Mapping When NFTs Are Minted - Alternative approach
     function test_ShouldEnsureCorrectOwnershipMappingWhenNFTsAreMintedAlt() public {
         vm.startPrank(user1);
-        address owner1Collection1 = nftFactory.createNewCollection("User1 Token", "TKN1");
-        address owner1Collection2 = nftFactory.createNewCollection("User1 Token", "TKN2");
+        address owner1Collection1 = nftFactory.createNewCollection("User1 Token", "TKN1", tokenURI1);
+        address owner1Collection2 = nftFactory.createNewCollection("User1 Token", "TKN2", tokenURI2);
         vm.stopPrank();
         
         vm.prank(user2);
-        address owner2Collection1 = nftFactory.createNewCollection("User2 Token", "TKN3");
+        address owner2Collection1 = nftFactory.createNewCollection("User2 Token", "TKN3", tokenURI3);
 
         vm.startPrank(user1);
         nftFactory.mintNFT(address(owner1Collection1), tokenURI1);
